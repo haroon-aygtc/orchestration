@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  type        String
+  status      String
+  input       Json
+  output      Json?
+  error       String?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  agentId     String?
+  parentId    String?
+  metadata    Json?
+  parent      Task?     @relation("TaskHierarchy", fields: [parentId], references: [id])
+  children    Task[]    @relation("TaskHierarchy")
+
+  @@map("tasks")
+}
+
+model Memory {
+  id        String    @id @default(cuid())
+  key       String    @unique
+  value     Json
+  context   String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("memories")
+}
+
+model Workflow {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  goal        String
+  status      String
+  steps       Json
+  currentStep Int       @default(0)
+  result      Json?
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@map("workflows")
+}
+
+model Agent {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  type       String
+  status     String
+  config     Json?
+  state      Json?
+  lastActive DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("agents")
+}
+
+model ToolExecution {
+  id         String   @id @default(cuid())
+  toolName   String
+  parameters Json
+  result     Json?
+  success    Boolean
+  error      String?
+  duration   Int?
+  executedBy String?
+  executedAt DateTime @default(now())
+
+  @@map("tool_executions")
+}
+
+model ApiCall {
+  id         String   @id @default(cuid())
+  url        String
+  method     String
+  headers    Json?
+  body       Json?
+  response   Json?
+  statusCode Int?
+  success    Boolean
+  error      String?
+  duration   Int?
+  calledAt   DateTime @default(now())
+
+  @@map("api_calls")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String?
+  data      Json?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model Config {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  category  String?
+  updatedAt DateTime @updatedAt
+
+  @@map("config")
+}
+
+model AIProviderConfig {
+  id             String            @id @default(cuid())
+  provider       String
+  apiKey         String
+  model          String
+  maxTokens      Int               @default(4096)
+  temperature    Float             @default(0.7)
+  baseUrl        String?
+  timeoutMs      Int?
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  agentProviders AgentAIProvider[]
+
+  @@unique([provider, model])
+  @@map("ai_provider_configs")
+}
+
+model AgentAIProvider {
+  id         String           @id @default(cuid())
+  agentName  String
+  providerId String
+  isDefault  Boolean          @default(false)
+  priority   Int              @default(0)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  provider   AIProviderConfig @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([agentName, providerId])
+  @@map("agent_ai_providers")
+}
+
+model Goal {
+  id                String       @id @default(cuid())
+  title             String
+  description       String
+  status            GoalStatus   @default(PENDING)
+  context           Json?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  businessProfileId String?
+  artifacts         Artifact[]
+  steps             PlanStep[]
+  suggestions       Suggestion[]
+
+  @@map("goals")
+}
+
+model PlanStep {
+  id              String     @id @default(cuid())
+  goalId          String
+  agent           String
+  tool            String?
+  input           Json
+  successCriteria String
+  status          StepStatus @default(PENDING)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  result          Json?
+  error           String?
+  taskId          String?
+  goal            Goal       @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("plan_steps")
+}
+
+model Artifact {
+  id        String   @id @default(cuid())
+  goalId    String
+  kind      String
+  by        String
+  data      Json
+  createdAt DateTime @default(now())
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("artifacts")
+}
+
+model Suggestion {
+  id         String   @id @default(cuid())
+  goalId     String
+  fromAgent  String
+  toAgent    String?
+  text       String
+  action     Json?
+  confidence Float
+  createdAt  DateTime @default(now())
+  goal       Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("suggestions")
+}
+
+model WorkflowState {
+  id             String    @id @default(cuid())
+  workflowId     String
+  goalId         String
+  currentStep    String
+  completedSteps String[]
+  failedSteps    String[]
+  pendingSteps   String[]
+  state          String
+  data           Json
+  checkpoints    Json
+  startedAt      DateTime  @default(now())
+  lastUpdatedAt  DateTime  @updatedAt
+  completedAt    DateTime?
+  executionTime  Int?
+  retryCount     Int       @default(0)
+  version        Int       @default(1)
+
+  @@map("workflow_states")
+}
+
+model WorkflowCheckpoint {
+  id            String   @id @default(cuid())
+  workflowId    String
+  stepId        String
+  timestamp     DateTime @default(now())
+  state         Json
+  artifacts     Json
+  metrics       Json
+  executionTime Int
+
+  @@map("workflow_checkpoints")
+}
+
+model WorkflowMetrics {
+  id                   String    @id @default(cuid())
+  workflowId           String    @unique
+  totalExecutions      Int       @default(0)
+  successfulExecutions Int       @default(0)
+  failedExecutions     Int       @default(0)
+  averageExecutionTime Float     @default(0)
+  successRate          Float     @default(0)
+  lastExecutedAt       DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("workflow_metrics")
+}
+
+model ParallelExecutionPlan {
+  id             String    @id @default(cuid())
+  name           String
+  goalId         String
+  maxConcurrency Int       @default(5)
+  timeout        Int       @default(300000)
+  retryPolicy    Json
+  status         String
+  tasks          Json
+  results        Json
+  errors         Json
+  metrics        Json
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  @@map("parallel_execution_plans")
+}
+
+model ParallelExecutionTask {
+  id            String    @id @default(cuid())
+  planId        String
+  name          String
+  type          String
+  agent         String?
+  tool          String?
+  input         Json
+  dependencies  String[]
+  timeout       Int?
+  retries       Int       @default(3)
+  priority      Int       @default(0)
+  status        String
+  result        Json?
+  error         String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  executionTime Int?
+
+  @@map("parallel_execution_tasks")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  price       Float
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+enum GoalStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum StepStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}

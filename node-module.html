@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>@nodes — System Visuals (Comprehensive)</title>
+
+  <!-- Mermaid: use the requested CDN -->
+  <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0c111b;
+      --panel: #111829;
+      --panel-2: #0e1628;
+      --ink: #e6edf7;
+      --muted: #a8b3c7;
+      --line: rgba(255,255,255,.08);
+      --brand: #5b93ff;
+      --brand-2: #4a6cf7;
+      --ok: #3fd18b;
+      --warn: #ffb547;
+      --err: #ff6b6b;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    html, body { margin:0; background:var(--bg); color:var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .layout { display:grid; grid-template-columns: 260px 1fr; min-height:100vh; }
+    nav { background: var(--panel); border-right: 1px solid var(--line); padding: 20px 18px; position: sticky; top: 0; height: 100vh; overflow:auto; }
+    .brand { display:flex; gap:10px; align-items:center; font-weight:700; margin-bottom: 16px; }
+    .brand .dot { width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,var(--brand),var(--brand-2)); box-shadow:0 0 0 2px rgba(90,150,255,.2); }
+    .nav-sec { margin: 18px 0; }
+    .nav-sec h4 { color:#cfe1ff; margin:0 0 8px; font-size:12px; letter-spacing:.6px; text-transform: uppercase; }
+    .nav-sec a { display:block; color:var(--ink); text-decoration:none; padding: 6px 8px; border-radius:8px; margin: 4px 0; border:1px solid transparent; }
+    .nav-sec a:hover { background: var(--panel-2); border-color: var(--line); }
+    .wrap { padding: 28px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 18px; }
+    h1 { font-size: clamp(22px, 2.6vw, 34px); margin: 0; }
+    .badge { background:linear-gradient(135deg,var(--brand),var(--brand-2)); padding:8px 14px; border-radius:999px; font-weight:700; box-shadow: var(--shadow); }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005)); border:1px solid var(--line); border-radius:16px; padding:18px; margin:16px 0 26px; box-shadow: var(--shadow); }
+    h2 { margin: 0 0 12px; color:#dce9ff; font-size:20px; }
+    h3 { margin: 8px 0 10px; color:#cbd8f5; font-size:18px; }
+    .mermaid { background: var(--panel-2); border-radius:14px; padding: 12px; overflow:auto; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .col-6 { grid-column: span 6; } .col-12 { grid-column: span 12; }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } nav { position:relative; height:auto; } }
+    table { width:100%; border-collapse: collapse; margin-top:10px; }
+    th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); }
+    th { color:#cfe1ff; }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.06); color:#dbe7ff; margin-right:8px; font-size:12px; }
+    .kpi { display:flex; gap:16px; flex-wrap:wrap; }
+    .kpi .card { flex:1 1 240px; }
+    .legend { display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+    .legend span { padding:4px 8px; border-radius:999px; background: rgba(255,255,255,.06); }
+    footer { color:var(--muted); font-size:12px; padding: 24px 0 60px; }
+    .btns { display:flex; gap:10px; }
+    .btn { display:inline-flex; align-items:center; gap:8px; background: var(--panel-2); border:1px solid var(--line); padding:8px 12px; border-radius:8px; text-decoration:none; color:var(--ink); }
+    .btn:hover { background:#0f1b31; }
+    @media print { nav, .btns, .hint { display:none; } .card { break-inside: avoid-page; } body { background:white; color:#111; } .mermaid { background:white; } }
+  </style>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      flowchart: { curve: 'basis' }
+    });
+  </script>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="brand"><span class="dot"></span> <span>@nodes Visual Guide</span></div>
+      <div class="nav-sec">
+        <h4>System</h4>
+        <a href="#overview">Overview</a>
+        <a href="#data-flows">Data Flows</a>
+      </div>
+      <div class="nav-sec">
+        <h4>Critical Flows</h4>
+        <a href="#flow1">1. Execution via Orchestration</a>
+        <a href="#flow2">2. AI‑Powered Selection</a>
+        <a href="#flow3">3. Composition Execution</a>
+        <a href="#flow4">4. Monitoring & Metrics</a>
+      </div>
+      <div class="nav-sec">
+        <h4>Pipelines</h4>
+        <a href="#pipelines">Tabular Pipelines</a>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <header>
+        <h1>System Visuals — @nodes Subsystem</h1>
+        <div class="btns">
+          <a class="btn" href="#" onclick="window.print();return false;">🖨️ Print / Save PDF</a>
+          <a class="btn" href="#overview">⬇️ Go to Top</a>
+        </div>
+      </header>
+
+      <!-- OVERVIEW: Component Map -->
+      <section id="overview" class="card">
+        <h2>High‑Level Architecture Overview</h2>
+        <div class="legend">
+          <span>API = HTTP layer</span>
+          <span>ORCH = orchestration</span>
+          <span>REG = node registry</span>
+          <span>TOOL = tool registry</span>
+          <span>AI = AI service</span>
+          <span>EXT = external systems</span>
+        </div>
+        <div class="mermaid">
+flowchart LR
+  subgraph Client["Client Apps"]
+    C1[Web Client]:::client
+    C2[Service Caller]:::client
+  end
+
+  subgraph API["API Routes"]
+    A1[POST /api/nodes]:::api
+    A2[GET /api/nodes/:id]:::api
+  end
+
+  subgraph ORCH["Orchestration Service"]
+    O1[executeNextStep]:::core
+    O2[executeNodeComposition]:::core
+    O3[suggestNodeComposition]:::core
+  end
+
+  subgraph REG["Node Registry"]
+    R1[getNode]:::core
+    R2[executeNode]:::core
+    R3[getAllNodes]:::core
+    R4[Metrics update]:::metric
+  end
+
+  subgraph TOOL["Tool Registry"]
+    T1[Tool Wrappers\n(caching/timeout/metrics)]:::core
+    T2[HTTP/DB/File/Email]:::io
+  end
+
+  subgraph AI["AI Service"]
+    S1[Analyze Goal]:::ai
+    S2[Rank & Select Nodes]:::ai
+  end
+
+  subgraph EXT["External Services"]
+    X1[(HTTP APIs)]:::ext
+    X2[(DB)]:::ext
+    X3[(SMTP)]:::ext
+    X4[(FS/Storage)]:::ext
+  end
+
+  C1 --> A1
+  C2 --> A1
+  A1 --> O1
+  A1 --> O2
+  A1 --> O3
+  O1 --> R1 --> R2 --> T1 --> T2 --> X1
+  T2 --> X2
+  T2 --> X3
+  T2 --> X4
+  O3 --> AI
+  S1 --> O3
+  O2 --> R3
+  R4 -.metrics.-> AI
+
+  classDef client fill:#223452,stroke:#2c4064,color:#e6f0ff;
+  classDef api fill:#23324a,stroke:#2d3b59,color:#e6f0ff;
+  classDef core fill:#1f2a44,stroke:#314466,color:#e6f0ff;
+  classDef ai fill:#2a2647,stroke:#3b3570,color:#f0eaff;
+  classDef io fill:#193448,stroke:#2b536e,color:#e6f7ff;
+  classDef metric fill:#17383a,stroke:#2a5d60,color:#dff7f7;
+  classDef ext fill:#1d2a2a,stroke:#2a3f3f,color:#eaf7f7;
+        </div>
+        <p class="hint">Wrappers (timeouts, retries, caching, capability checks) live in the tool registry and are applied per tool.</p>
+      </section>
+
+      <!-- FLOW 1 -->
+      <section id="flow1" class="card">
+        <h2>Critical Flow 1 — Node Execution via Orchestration</h2>
+        <div class="mermaid">
+sequenceDiagram
+  participant Client
+  participant API as API Route
+  participant ORCH as Orchestration Service
+  participant REG as Node Registry
+  participant TOOL as Tool Registry
+  participant EXT as External Service
+
+  Client->>API: POST /api/nodes {action: "execute", nodeId, params}
+  API->>ORCH: executeNextStep(goalId)
+  ORCH->>REG: getNode(nodeId)
+  REG-->>ORCH: Node definition
+  ORCH->>REG: executeNode(nodeId, params)
+  REG->>TOOL: Execute underlying tool
+  TOOL->>EXT: Make external call
+  EXT-->>TOOL: Response
+  TOOL-->>REG: Tool result
+  REG->>REG: Update performance metrics
+  REG-->>ORCH: Node result
+  ORCH-->>API: Execution result
+  API-->>Client: Success/Error response
+        </div>
+      </section>
+
+      <!-- FLOW 2 -->
+      <section id="flow2" class="card">
+        <h2>Critical Flow 2 — AI‑Powered Node Selection</h2>
+        <div class="mermaid">
+sequenceDiagram
+  participant Client
+  participant API as API Route
+  participant SEL as Selection Service
+  participant AI as AI Service
+  participant REG as Node Registry
+  participant CACHE as Performance Cache
+
+  Client->>API: POST /api/nodes {action: "select-for-goal", goal, context}
+  API->>SEL: selectNodesForGoal(goal, context)
+  SEL->>AI: analyzeGoal(goal, context)
+  AI-->>SEL: {category, tags, complexity, performance}
+  SEL->>REG: searchNodes(criteria)
+  REG->>CACHE: Get performance metrics
+  CACHE-->>REG: Metrics data
+  REG-->>SEL: Candidate nodes
+  SEL->>AI: rankAndSelectNodes(candidates, goal)
+  AI-->>SEL: Ranked node IDs
+  SEL->>REG: getNode(nodeId) for each
+  REG-->>SEL: Node definitions
+  SEL-->>API: Selected nodes
+  API-->>Client: Node selection result
+        </div>
+      </section>
+
+      <!-- FLOW 3 -->
+      <section id="flow3" class="card">
+        <h2>Critical Flow 3 — Node Composition Execution</h2>
+        <div class="mermaid">
+sequenceDiagram
+  participant Client
+  participant API as API Route
+  participant ORCH as Orchestration Service
+  participant REG as Node Registry
+  participant NODE1 as Node 1
+  participant NODE2 as Node 2
+  participant NODE3 as Node 3
+
+  Client->>API: POST /api/nodes {action: "suggest-composition", goal}
+  API->>ORCH: suggestNodeComposition(goal, context)
+  ORCH->>REG: getAllNodes()
+  REG-->>ORCH: Available nodes
+  ORCH->>AI: Analyze goal and suggest composition
+  AI-->>ORCH: {nodes: [], connections: []}
+  ORCH-->>API: Composition suggestion
+  API-->>Client: Suggested composition
+
+  Note over Client,NODE3: Execution Phase
+  Client->>API: POST /api/nodes {action: "execute-composition", compositionId, params}
+  API->>ORCH: executeNodeComposition(compositionId, params)
+  ORCH->>REG: executeComposition(compositionId, params)
+  REG->>NODE1: executeNode(nodeId, params)
+  NODE1-->>REG: Result 1
+  REG->>NODE2: executeNode(nodeId, result1)
+  NODE2-->>REG: Result 2
+  REG->>NODE3: executeNode(nodeId, result2)
+  NODE3-->>REG: Result 3
+  REG-->>ORCH: Final result
+  ORCH-->>API: Composition result
+  API-->>Client: Execution result
+        </div>
+      </section>
+
+      <!-- FLOW 4 -->
+      <section id="flow4" class="card">
+        <h2>Critical Flow 4 — Performance Monitoring & Metrics</h2>
+        <div class="mermaid">
+sequenceDiagram
+  participant NODE as Node Execution
+  participant REG as Node Registry
+  participant METRICS as Performance Tracker
+  participant CACHE as Metrics Cache
+  participant MONITOR as Monitoring System
+
+  NODE->>REG: executeNode(nodeId, params)
+  REG->>METRICS: updatePerformanceMetrics(nodeId, executionTime, success)
+  METRICS->>CACHE: Store metrics
+  CACHE-->>METRICS: Metrics stored
+  METRICS-->>REG: Metrics updated
+  REG->>NODE: Execute node
+  NODE-->>REG: Result
+  REG->>METRICS: Record execution result
+  METRICS->>MONITOR: Emit metrics event
+  MONITOR-->>METRICS: Metrics processed
+        </div>
+      </section>
+
+      <!-- PIPELINES (Tables) -->
+      <section id="pipelines" class="card">
+        <h2>Tabular Pipelines</h2>
+        <div class="grid">
+          <div class="col-12">
+            <h3>Flow 1 — Data Pipeline</h3>
+            <table>
+              <thead>
+                <tr><th>Stage</th><th>Input Schema</th><th>Validations</th><th>Transforms</th><th>Branching</th><th>Outputs/Persistence</th><th>Events</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>API Request</td><td>{action, nodeId, params}</td><td>Security middleware</td><td>Parse JSON</td><td>Route handler</td><td>Request context</td><td>api.request.received</td></tr>
+                <tr><td>Node Lookup</td><td>nodeId</td><td>Exists check</td><td>Normalize format</td><td>Found / missing</td><td>Registry cache</td><td>node.lookup.*</td></tr>
+                <tr><td>Parameter Validation</td><td>params</td><td>Types / required</td><td>Sanitize</td><td>Valid / invalid</td><td>Validation result</td><td>node.validation.*</td></tr>
+                <tr><td>Tool Execution</td><td>{toolName, params}</td><td>Capability checks</td><td>Map params</td><td>Success / failure</td><td>External operation</td><td>tool.execution.*</td></tr>
+                <tr><td>Result Processing</td><td>{success, data, error?}</td><td>Output schema</td><td>Format response</td><td>Success / error</td><td>Perf metrics</td><td>node.execution.complete</td></tr>
+                <tr><td>Response</td><td>{success, data, meta?}</td><td>Response validation</td><td>Serialize</td><td>Success / error</td><td>Client</td><td>api.response.sent</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-12">
+            <h3>Flow 2 — Selection Pipeline</h3>
+            <table>
+              <thead>
+                <tr><th>Stage</th><th>Input</th><th>Validations</th><th>Transforms</th><th>Branching</th><th>Outputs</th><th>Events</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Goal Analysis</td><td>{goal, context}</td><td>Sanitize</td><td>Parse goal</td><td>Valid/invalid</td><td>Analysis result</td><td>ai.analysis.start</td></tr>
+                <tr><td>AI Processing</td><td>{prompt, temperature}</td><td>Service validation</td><td>Format prompt</td><td>Success/failure</td><td>AI call</td><td>ai.call.*</td></tr>
+                <tr><td>Criteria</td><td>{category,tags,complexity,performance}</td><td>Schema</td><td>To search criteria</td><td>Valid/invalid</td><td>Search criteria</td><td>criteria.generated</td></tr>
+                <tr><td>Node Search</td><td>NodeSearchCriteria</td><td>Validate</td><td>Filter nodes</td><td>Found/not</td><td>Registry query</td><td>node.search.*</td></tr>
+                <tr><td>Node Ranking</td><td>{candidates,goal}</td><td>Validate</td><td>Relevance rank</td><td>Success/failure</td><td>Ranked results</td><td>node.ranking.complete</td></tr>
+                <tr><td>Selection</td><td>{rankedIds}</td><td>Existence</td><td>To node objects</td><td>Success/failure</td><td>Selected nodes</td><td>node.selection.complete</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-12">
+            <h3>Flow 3 — Composition Pipeline</h3>
+            <table>
+              <thead>
+                <tr><th>Stage</th><th>Input Schema</th><th>Validations</th><th>Transforms</th><th>Branching</th><th>Outputs/Persistence</th><th>Events</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Composition Creation</td><td>{name, description, nodes, connections}</td><td>Schema</td><td>Validate refs</td><td>Valid/invalid</td><td>Store composition</td><td>composition.created</td></tr>
+                <tr><td>Node Execution</td><td>{nodeId, params}</td><td>Node validation</td><td>Execute node</td><td>Success/failure</td><td>Store result</td><td>node.execution.*</td></tr>
+                <tr><td>Data Flow</td><td>{from:{stepId,output}, to:{stepId,input}}</td><td>Connection</td><td>Pass data</td><td>Valid/invalid</td><td>Forward data</td><td>data.flow.complete</td></tr>
+                <tr><td>Result Aggregation</td><td>{results: any[]}</td><td>Result validation</td><td>Combine</td><td>Success/failure</td><td>Final result</td><td>composition.complete</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="col-12">
+            <h3>Flow 4 — Metrics Pipeline</h3>
+            <table>
+              <thead>
+                <tr><th>Metric</th><th>Collection Point</th><th>Validation</th><th>Storage</th><th>Retention</th><th>Alerting</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Execution Time</td><td>nodes/registry.ts:L58-L73</td><td>Range</td><td>In‑memory Map</td><td>None (risk)</td><td>Not implemented</td></tr>
+                <tr><td>Memory Usage</td><td>nodes/registry.ts:L70</td><td>Size</td><td>In‑memory Map</td><td>None (risk)</td><td>Not implemented</td></tr>
+                <tr><td>Success Rate</td><td>nodes/registry.ts:L63,L76</td><td>Rate calc</td><td>In‑memory Map</td><td>None (risk)</td><td>Not implemented</td></tr>
+                <tr><td>Error Rate</td><td>nodes/registry.ts:L76</td><td>Rate calc</td><td>In‑memory Map</td><td>None (risk)</td><td>Not implemented</td></tr>
+                <tr><td>Execution Count</td><td>nodes/registry.ts:L334</td><td>Increment</td><td>In‑memory Map</td><td>None (risk)</td><td>Not implemented</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="hint">Risks: indefinite retention • Missing batching • Potential N+1 queries.</p>
+      </section>
+
+      <footer>
+        <div>Open this file with internet access (for Mermaid CDN). To export a PDF, use your browser’s “Print → Save as PDF”.</div>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>@nodes — Data Flows & Execution Patterns (Visual)</title>
+  <!-- Mermaid (CDN). Requires internet when opening the file. -->
+  <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a2f;
+      --ink: #e8ecf4;
+      --muted: #9db0d3;
+      --accent: #4A90E2;
+      --accent-2: #1976d2;
+      --ok: #41c88a;
+      --warn: #ffb020;
+      --err: #ff5c5c;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    html, body { background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif; margin: 0; }
+    .wrap { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 24px; }
+    h1 { font-size: clamp(22px, 3.2vw, 34px); margin: 0; letter-spacing: .2px; }
+    .badge { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 8px 14px; border-radius: 999px; box-shadow: var(--shadow); font-weight: 600; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005)); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); margin: 18px 0 28px; }
+    h2 { font-size: 20px; margin: 0 0 12px; color: #dbe7ff; }
+    h3 { font-size: 18px; margin: 0 0 10px; color: #cfdaf2; }
+    .mermaid { background: var(--card); border-radius: 14px; padding: 12px; overflow:auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    th { color: #c7d5f2; font-weight: 600; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    .hint { color: var(--muted); font-size: 13px; }
+    footer { color: var(--muted); font-size: 12px; margin: 24px 0 60px; }
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+    @media (max-width: 960px) { .col-6 { grid-column: span 12; } }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.06); color:#dbe7ff; margin-right:8px; font-size:12px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .err { color: var(--err); }
+    .kpi { display:flex; gap:16px; flex-wrap: wrap; }
+    .kpi .card { flex: 1 1 240px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; color:#c8ddff; }
+    @media print {
+      header, .hint { display:none; }
+      .card { break-inside: avoid-page; }
+      .mermaid { background: white; }
+      body { background: white; color: #111; }
+    }
+  </style>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🔄 @nodes — Data Flows & Execution Patterns</h1>
+      <div class="badge">AxonStream • Visual System Map</div>
+    </header>
+
+    <div class="card">
+      <h2>Critical Flow 1: Node Execution via Orchestration</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant API as API Route
+    participant ORCH as Orchestration Service
+    participant REG as Node Registry
+    participant TOOL as Tool Registry
+    participant EXT as External Service
+
+    Client->>API: POST /api/nodes {action: "execute", nodeId, params}
+    API->>ORCH: executeNextStep(goalId)
+    ORCH->>REG: getNode(nodeId)
+    REG-->>ORCH: Node definition
+    ORCH->>REG: executeNode(nodeId, params)
+    REG->>TOOL: Execute underlying tool
+    TOOL->>EXT: Make external call
+    EXT-->>TOOL: Response
+    TOOL-->>REG: Tool result
+    REG->>REG: Update performance metrics
+    REG-->>ORCH: Node result
+    ORCH-->>API: Execution result
+    API-->>Client: Success/Error
+      </div>
+
+      <div class="grid">
+        <div class="col-12">
+          <h3>Data Pipeline</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>Input Schema</th>
+                <th>Validations</th>
+                <th>Transforms</th>
+                <th>Branching</th>
+                <th>Outputs / Persistence</th>
+                <th>Events</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>API Request</td><td class="code">{action, nodeId, params}</td><td>Security middleware</td><td>Parse JSON</td><td>Route handler</td><td>Request context</td><td>api.request.received</td></tr>
+              <tr><td>Node Lookup</td><td class="code">nodeId</td><td>Exists check</td><td>Normalize format</td><td>Found / missing</td><td>Registry cache</td><td>node.lookup.*</td></tr>
+              <tr><td>Param Validation</td><td class="code">params</td><td>Types & required</td><td>Sanitize</td><td>Valid / invalid</td><td>Validation result</td><td>node.validation.*</td></tr>
+              <tr><td>Tool Execution</td><td class="code">{toolName, params}</td><td>Capability checks</td><td>Map params</td><td>Success / fail</td><td>External call</td><td>tool.execution.*</td></tr>
+              <tr><td>Result Processing</td><td class="code">{success, data, error?}</td><td>Output schema</td><td>Format response</td><td>Success / error</td><td>Perf metrics</td><td>node.execution.complete</td></tr>
+              <tr><td>Response</td><td class="code">{success, data, meta?}</td><td>Response validation</td><td>Serialize</td><td>Success / error</td><td>Send to client</td><td>api.response.sent</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="hint">Timeouts: HTTP/Email/File 60s, DB 30s • Retries: 3 with exponential backoff • Concurrency: per‑goal mutex</p>
+    </div>
+
+    <div class="card">
+      <h2>Critical Flow 2: AI‑Powered Node Selection</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant API as API Route
+    participant SEL as Selection Service
+    participant AI as AI Service
+    participant REG as Node Registry
+    participant CACHE as Performance Cache
+
+    Client->>API: POST /api/nodes {action: "select-for-goal", goal, context}
+    API->>SEL: selectNodesForGoal(goal, context)
+    SEL->>AI: analyzeGoal(goal, context)
+    AI-->>SEL: {category, tags, complexity, performance}
+    SEL->>REG: searchNodes(criteria)
+    REG->>CACHE: Get performance metrics
+    CACHE-->>REG: Metrics data
+    REG-->>SEL: Candidate nodes
+    SEL->>AI: rankAndSelectNodes(candidates, goal)
+    AI-->>SEL: Ranked node IDs
+    SEL->>REG: getNode(nodeId) for each
+    REG-->>SEL: Node definitions
+    SEL-->>API: Selected nodes
+    API-->>Client: Node selection result
+      </div>
+
+      <h3>Pipeline</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th><th>Input</th><th>Validations</th><th>Transforms</th><th>Branching</th><th>Outputs</th><th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Goal Analysis</td><td class="code">{goal, context}</td><td>Sanitize</td><td>Parse description</td><td>Valid/invalid</td><td>Analysis result</td><td>ai.analysis.start</td></tr>
+          <tr><td>AI Processing</td><td class="code">{prompt, temperature}</td><td>Service validation</td><td>Format prompt</td><td>Success/failure</td><td>AI call</td><td>ai.call.*</td></tr>
+          <tr><td>Criteria</td><td class="code">{category,tags,complexity,performance}</td><td>Schema</td><td>To search criteria</td><td>Valid/invalid</td><td>Search criteria</td><td>criteria.generated</td></tr>
+          <tr><td>Node Search</td><td class="code">NodeSearchCriteria</td><td>Validate</td><td>Filter nodes</td><td>Found/not</td><td>Registry query</td><td>node.search.*</td></tr>
+          <tr><td>Ranking</td><td class="code">{candidates,goal}</td><td>Node validation</td><td>Relevance rank</td><td>Success/failure</td><td>Ranked results</td><td>node.ranking.complete</td></tr>
+          <tr><td>Selection</td><td class="code">{rankedIds}</td><td>Existence</td><td>To node objs</td><td>Success/failure</td><td>Selected nodes</td><td>node.selection.complete</td></tr>
+        </tbody>
+      </table>
+      <p class="hint">Fallback: basic text search on AI failure • Caching: not implemented (opportunity)</p>
+    </div>
+
+    <div class="card">
+      <h2>Critical Flow 3: Node Composition Execution</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant API as API Route
+    participant ORCH as Orchestration Service
+    participant REG as Node Registry
+    participant NODE1 as Node 1
+    participant NODE2 as Node 2
+    participant NODE3 as Node 3
+
+    Client->>API: POST /api/nodes {action: "suggest-composition", goal}
+    API->>ORCH: suggestNodeComposition(goal, context)
+    ORCH->>REG: getAllNodes()
+    REG-->>ORCH: Available nodes
+    ORCH->>AI: Analyze goal and suggest composition
+    AI-->>ORCH: {nodes: [], connections: []}
+    ORCH-->>API: Composition suggestion
+    API-->>Client: Suggested composition
+
+    Note over Client,NODE3: Execution Phase
+    Client->>API: POST /api/nodes {action: "execute-composition", compositionId, params}
+    API->>ORCH: executeNodeComposition(compositionId, params)
+    ORCH->>REG: executeComposition(compositionId, params)
+    REG->>NODE1: executeNode(nodeId, params)
+    NODE1-->>REG: Result 1
+    REG->>NODE2: executeNode(nodeId, result1)
+    NODE2-->>REG: Result 2
+    REG->>NODE3: executeNode(nodeId, result2)
+    NODE3-->>REG: Result 3
+    REG-->>ORCH: Final result
+    ORCH-->>API: Composition result
+    API-->>Client: Execution result
+      </div>
+
+      <h3>Composition Model</h3>
+      <ul>
+        <li><span class="pill">Sequential execution</span> nodes run in order, outputs become next inputs</li>
+        <li><span class="pill">Fail-fast</span> abort on first failure (configurable)</li>
+        <li><span class="pill">Per-node timeout</span> enforced at execution layer</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Critical Flow 4: Performance Monitoring & Metrics</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant NODE as Node Execution
+    participant REG as Node Registry
+    participant METRICS as Performance Tracker
+    participant CACHE as Metrics Cache
+    participant MONITOR as Monitoring System
+
+    NODE->>REG: executeNode(nodeId, params)
+    REG->>METRICS: updatePerformanceMetrics(nodeId, executionTime, success)
+    METRICS->>CACHE: Store metrics
+    CACHE-->>METRICS: Metrics stored
+    METRICS-->>REG: Metrics updated
+    REG->>NODE: Execute node
+    NODE-->>REG: Result
+    REG->>METRICS: Record execution result
+    METRICS->>MONITOR: Emit metrics event
+    MONITOR-->>METRICS: Metrics processed
+      </div>
+
+      <div class="grid">
+        <div class="col-12">
+          <h3>Performance Metrics</h3>
+          <table>
+            <thead><tr><th>Metric</th><th>Collection</th><th>Validation</th><th>Storage</th><th>Retention</th><th>Alerting</th></tr></thead>
+            <tbody>
+              <tr><td>Execution Time</td><td>nodes/registry.ts:L58-L73</td><td>Range</td><td>In-memory</td><td>None (risk)</td><td>None</td></tr>
+              <tr><td>Memory Usage</td><td>nodes/registry.ts:L70</td><td>Size</td><td>In-memory</td><td>None (risk)</td><td>None</td></tr>
+              <tr><td>Success Rate</td><td>nodes/registry.ts:L63,L76</td><td>Rate calc</td><td>In-memory</td><td>None (risk)</td><td>None</td></tr>
+              <tr><td>Error Rate</td><td>nodes/registry.ts:L76</td><td>Rate calc</td><td>In-memory</td><td>None (risk)</td><td>None</td></tr>
+              <tr><td>Execution Count</td><td>nodes/registry.ts:L334</td><td>Increment</td><td>In-memory</td><td>None (risk)</td><td>None</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="hint">Risks: indefinite in-memory retention • Missing batching • Potential N+1 in search & composition paths.</p>
+    </div>
+
+    <div class="card">
+      <h2>Error Handling & Recovery</h2>
+      <ul>
+        <li><span class="pill">Node Not Found</span> graceful error with clear message</li>
+        <li><span class="pill">Validation Errors</span> detailed per-field info</li>
+        <li><span class="pill">AI Failures</span> fallback to basic search</li>
+        <li><span class="pill">Tool Failures</span> retries + backoff</li>
+        <li><span class="pill">Network Failures</span> timeout + retry</li>
+      </ul>
+    </div>
+
+    <footer>
+      <div>Tip: Use browser “Print” → “Save as PDF” for a high-res PDF export. Mermaid renders client-side.</div>
+    </footer>
+  </div>
+</body>
+</html>
